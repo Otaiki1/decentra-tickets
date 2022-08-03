@@ -20,45 +20,45 @@ export default function Home() {
           A decentralized smart ticketing system
         </p>
         <div className="accordion" id="accordionExample">
-  <div className="accordion-item">
-    <h2 className="accordion-header" id="headingOne">
-      <button className="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-        Event 1
-      </button>
-    </h2>
-    <div id="collapseOne" className="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
-      <div className="accordion-body">
-        <strong>Build the future</strong> 
-        <p>A web3 Hackathon Event</p>
-        <p>Price of the tickets is : </p>
-        <div className='row'>
-          <div className='col-md-6'>
-            <button className='btn btn-success'>Buy Tickets</button>
+          <div className="accordion-item">
+            <h2 className="accordion-header" id="headingOne">
+              <button className="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                Event 1
+              </button>
+            </h2>
+            <div id="collapseOne" className="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+              <div className="accordion-body">
+                <strong>Build the future</strong> 
+                <p>A web3 Hackathon Event</p>
+                <p>Price of the tickets is : </p>
+                <div className='row'>
+                  <div className='col-md-6'>
+                    <button className='btn btn-success'>Buy Tickets</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="accordion-item">
+            <h2 className="accordion-header" id="headingOne">
+              <button className="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                Event 2
+              </button>
+            </h2>
+            <div id="collapseOne" className="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+              <div className="accordion-body">
+                <strong>Social Techies</strong> 
+                <p>A party for all techies</p>
+                <p>Price of the tickets is : </p>
+                <div className='row'>
+                  <div className='col-md-6'>
+                    <button className='btn btn-success'>Buy Tickets</button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
-  <div className="accordion-item">
-    <h2 className="accordion-header" id="headingOne">
-      <button className="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-        Event 2
-      </button>
-    </h2>
-    <div id="collapseOne" className="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
-      <div className="accordion-body">
-        <strong>Social Techies</strong> 
-        <p>A party for all techies</p>
-        <p>Price of the tickets is : </p>
-        <div className='row'>
-          <div className='col-md-6'>
-            <button className='btn btn-success'>Buy Tickets</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
         
       </main>
 

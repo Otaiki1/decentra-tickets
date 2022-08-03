@@ -1,0 +1,68 @@
+{
+  "_format": "hh-sol-cache-2",
+  "files": {
+    "/home/ot/Documents/decentra-tickets/contracts/Ticketing.sol": {
+      "lastModificationDate": 1659487099113,
+      "contentHash": "7a167fdcfc7b632e557f47e8cef49707",
+      "sourceName": "contracts/Ticketing.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0",
+        "^0.8.0",
+        "^0.8.0",
+        "^0.8.0",
+        "^0.8.1",
+        "^0.8.0",
+        "^0.8.0",
+        "^0.8.0",
+        "^0.8.0",
+        "^0.8.0",
+        "^0.8.0",
+        "^0.8.0",
+        "^0.8.4",
+        ">=0.7.0 <0.9.0",
+        "^0.8.9"
+      ],
+      "artifacts": [
+        "Address",
+        "Context",
+        "Counters",
+        "ERC165",
+        "ERC721",
+        "ERC721URIStorage",
+        "IERC165",
+        "IERC721",
+        "IERC721Metadata",
+        "IERC721Receiver",
+        "Itoken",
+        "MyToken",
+        "Ownable",
+        "Strings",
+        "Ticketing"
+      ]
+    }
+  }
+}
