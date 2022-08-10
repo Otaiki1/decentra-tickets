@@ -1,8 +1,8 @@
 import { ethers } from "ethers";
 import { useState } from "react";
 
-import Ticketing from "../contracts/artifact/Ticketing.json";
-const ticketingAddress = "0x27716502128cfCAFC3b4959B9146fEB23B827ee0";
+import Ticketing from "../artifacts/contracts/Ticketing.sol/Ticketing.json";
+const ticketingAddress = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
 
 export default function CreateEvent() {
 
@@ -20,9 +20,6 @@ export default function CreateEvent() {
         await check;
     }
 
-    const registerEvent = async() => {
-        
-    }
 
     const submitEvent = async(e) => {
         e.preventDefault();
@@ -33,7 +30,7 @@ export default function CreateEvent() {
             const signer =  await provider.getSigner();
             const contract = new ethers.Contract(ticketingAddress, Ticketing.abi, signer);
             console.log(contract);
-            const transaction = await contract.createEvent(eventName, [ticketNumber], [ticketPrice], true, maxCustomer, deadline);
+            const transaction = await contract.createEvent(eventName, ticketNumber, ticketPrice, true, maxCustomer, deadline);
             console.log(transaction)
         }
     }

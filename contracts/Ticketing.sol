@@ -6,7 +6,7 @@ import "./IToken.sol";
 contract Ticketing {
     Itoken iToken;
 
-    address Deployer;
+    address deployer;
     constructor(address _account){
         iToken = Itoken(_account);
         deployer = msg.sender;
@@ -36,14 +36,21 @@ contract Ticketing {
         bool exists;
         uint64 total_num_tickets;
         uint128 total_paid;
-        uint64[] num_tickets;
+        uint num_tickets;
         bytes32 ticketId;
     }
     eventsData[] public genEvents;
     mapping(string => eventsData) public events;
     string[] public event_id_list;
-    uint8 public constant max_ticket_amount = 100;
+    uint8 public max_ticket_amount = 100;
 
+    //A struct that stores a mapping of events Name to ticket Id as well as array of all events Name somebody has
+    struct tickets{
+        string[] eventName;
+        mapping(string => bytes32)eventList;
+    }
+    // a mapping that links each address to the event 
+    mapping(address => tickets) participation;
     //Events for the state changing functions.
 
     event event_created(
@@ -163,32 +170,19 @@ contract Ticketing {
         uint128 new_price
     ) external eventExists(event_id) onlyHost(event_id) {
         require(
-            ticket_type < events[event_id].ticket_prices.length,
+            ticket_type < events[event_id].ticket_prices,
             "Ticket type does not exist."
         );
-        events[event_id].ticket_prices[ticket_type] = new_price;
+        events[event_id].ticket_prices = new_price;
     }
 
     //add tickets
     function add_tickets(
         string memory event_id,
-        uint64[] calldata additional_tickets
+        uint additional_tickets
     ) external eventExists(event_id) onlyHost(event_id) {
-        require(
-            additional_tickets.length ==
-                events[event_id].available_tickets.length,
-            "List of number of tickets to add must be of same length as existing list of tickets."
-        );
-
-        for (uint64 i = 0; i < events[event_id].available_tickets.length; i++) {
-            // Check for integer overflow
-            require(
-                events[event_id].available_tickets[i] + additional_tickets[i] >=
-                    events[event_id].available_tickets[i],
-                "Cannot exceed 2^64-1 tickets"
-            );
-            events[event_id].available_tickets[i] += additional_tickets[i];
-        }
+        
+            events[event_id].available_tickets += additional_tickets;
     }
 
     //get total number of ticket buyers
@@ -205,7 +199,7 @@ contract Ticketing {
         external
         view
         eventExists(event_id)
-        returns (uint64[] memory)
+        returns (uint)
     {
         return events[event_id].tickets[customer].num_tickets;
     }
@@ -242,19 +236,11 @@ contract Ticketing {
     //buys ticket
     function buy_tickets(
         string memory event_id,
-        uint64 ticket_type,
         uint64 requested_num_tickets
     ) external payable {
         require(requested_num_tickets > 0);
-        require(
-            ticket_type < events[event_id].available_tickets.length,
-            "Ticket type does not exist."
-        );
-        require(
-            requested_num_tickets <=
-                events[event_id].available_tickets[ticket_type],
-            "Not enough tickets available."
-        );
+        
+        require( requested_num_tickets <=   events[event_id].available_tickets,"Not enough tickets available.");
         require(
             !events[event_id].per_customer_limit ||
                 (events[event_id].tickets[msg.sender].total_num_tickets +
@@ -263,8 +249,7 @@ contract Ticketing {
             "Purchase surpasses max per customer."
         );
 
-        uint128 sum_price = uint128(requested_num_tickets) *
-            uint128(events[event_id].ticket_prices[ticket_type]);
+        uint128 sum_price = uint128(requested_num_tickets) * uint128(events[event_id].ticket_prices);
         require(msg.value >= sum_price, "Not enough ether was sent.");
 
         if (!events[event_id].tickets[msg.sender].exists) {
@@ -274,31 +259,28 @@ contract Ticketing {
                 .customers
                 .length;
             events[event_id].customers.push(msg.sender);
-            events[event_id].tickets[msg.sender].num_tickets = new uint64[](
-                events[event_id].available_tickets.length
-            );
+            events[event_id].tickets[msg.sender].num_tickets = requested_num_tickets;
         }
 
         events[event_id]
             .tickets[msg.sender]
             .total_num_tickets += requested_num_tickets;
-        events[event_id].tickets[msg.sender].num_tickets[
-                ticket_type
-            ] += requested_num_tickets;
+        events[event_id].tickets[msg.sender].num_tickets += requested_num_tickets;
         events[event_id].tickets[msg.sender].total_paid += sum_price;
-        events[event_id].available_tickets[
-            ticket_type
-        ] -= requested_num_tickets;
+        events[event_id].available_tickets -= requested_num_tickets;
         events[event_id].tickets[msg.sender].total_paid += sum_price;
         events[event_id].funds += sum_price;
         bytes32 id = _generateTicketId(
             event_id,
-            ticket_type,
             requested_num_tickets,
             msg.sender
         );
         events[event_id].tickets[msg.sender].ticketId = id;
         // iToken.safeMint(msg.sender, event_id) ;
+
+        //update the participation mapping
+        participation[msg.sender].eventName.push(event_id);
+        participation[msg.sender].eventList[event_id] = id;
 
         // Return excessive funds
         if (msg.value > sum_price) {
@@ -324,24 +306,30 @@ contract Ticketing {
             "Ticket sale is locked, which disables buyback."
         );
         uint return_amount = events[event_id].tickets[msg.sender].total_paid;
-        for (uint64 i = 0; i < events[event_id].available_tickets.length; i++) {
-            // Check for integer overflow
-            require(
-                events[event_id].available_tickets[i] +
-                    events[event_id].tickets[msg.sender].num_tickets[i] >=
-                    events[event_id].available_tickets[i],
-                "Failed because returned tickets would increase ticket pool past storage limit."
-            );
-            events[event_id].available_tickets[i] += events[event_id]
+        // for (uint64 i = 0; i < events[event_id].available_tickets.length; i++) {
+        //     // Check for integer overflow
+        //     require(
+        //         events[event_id].available_tickets[i] +
+        //             events[event_id].tickets[msg.sender].num_tickets[i] >=
+        //             events[event_id].available_tickets[i],
+        //         "Failed because returned tickets would increase ticket pool past storage limit."
+        //     );
+            // events[event_id].available_tickets[i] += events[event_id]
+                // .tickets[msg.sender]
+                // .num_tickets[i];
+        // }
+        events[event_id].available_tickets += events[event_id]
                 .tickets[msg.sender]
-                .num_tickets[i];
-        }
-        events[event_id].funds -= return_amount;
+                .num_tickets;
+        events[event_id].funds -= return_amount; 
+        uint index = findIndex(event_id, msg.sender);
+          participation[msg.sender].eventName[index] = '';
+        participation[msg.sender].eventList[event_id] = 0;
         (bool success, ) = msg.sender.call{value: (return_amount)}("");
         require(success, "Return transfer to customer failed.");
     }
 
-    // generates ticket id
+    // gets the generated ticket id
     function getGenTickedId(string calldata event_id)
         external
         view
@@ -354,7 +342,7 @@ contract Ticketing {
     function availableTickets(string memory event_id)
         external
         view
-        returns (uint64[] memory)
+        returns (uint)
     {
         return events[event_id].available_tickets;
     }
@@ -363,50 +351,53 @@ contract Ticketing {
     function _generateTicketId(
         string memory _name,
         uint64 _num1,
-        uint64 _num2,
         address signer
     ) internal pure returns (bytes32) {
         bytes32 gen = bytes32(
-            keccak256(abi.encodePacked(_name, _num1, _num2, signer))
+            keccak256(abi.encodePacked(_name, _num1,signer))
         );
         return gen;
     }
 
     // ----- View functions -----
 
-  function get_event_info(string event_id) external view eventExists(event_id) returns (
-    bytes32 id,
-    bytes32 title,
-    address owner,
+  function get_event_info(string memory eventId) external view eventExists(eventId) returns (
+    string memory,
     uint256 deadline,
     uint256 available_tickets,
     uint64 max_per_customer,
     uint256 ticket_price,
     bool sale_active,
-    bool buyback_active,
     bool per_customer_limit) {
-    Event memory e = events[event_id]; // does this make a deep copy of the struct to memory?
+
     return (
-      e.event_id,
-      e.title, memory
-      e.owner,
-      e.deadline,
-      e.available_tickets,
-      e.max_per_customer,
-      e.ticket_prices,
-      e.sale_active,
-      e.buyback_active,
-      e.per_customer_limit);
+      events[eventId].event_Id,
+      events[eventId].deadline,
+      events[eventId].available_tickets,
+      events[eventId].max_per_customer,
+      events[eventId].ticket_prices,
+      events[eventId].sale_active,
+      events[eventId].per_customer_limit);
   }
 
-  function get_events() external view returns (bytes32[] memory event_list) {
+  function get_events() external view returns (string[] memory event_list) {
     return event_id_list;
   }
 
-  function get_participation() external view returns (bytes32[] memory event_participation) {
-    require(participation[msg.sender].length > 0, "Sender does not own any tickets.");
-    return participation[msg.sender];
+  function getUserEvents() external view returns (string[] memory) {
+            return participation[msg.sender].eventName;
   }
 
+//A function that finds the index of a particular unique number
+    function findIndex(string memory _id, address _addr) public view returns(uint){
+        uint i;
+        for(i=0;i<participation[_addr].eventName.length;i++){
+            string memory theEventName = participation[_addr].eventName[i];
+            if(keccak256(abi.encodePacked(theEventName)) == keccak256(abi.encodePacked(_id))){
+                return i;
+            }
+        } 
+        return i;
+    }
 
 }
